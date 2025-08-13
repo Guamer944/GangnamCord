@@ -4,14 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GangnamCord</title>
-    <!-- Use a modern, clean font from Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome for the reply icon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* CSS Variables for easy theme changes */
         :root {
             --bg-color-primary: #1e1f22;
             --bg-color-secondary: #2b2d31;
@@ -22,7 +19,8 @@
             --highlight-hover: #4752c4;
             --border-color: #1a1a1c;
             --error-color: #f23f43;
-            --reply-highlight-color: rgba(255, 165, 0, 0.15); /* Transparent orange */
+            --reply-highlight-color: rgba(255, 165, 0, 0.15);
+            --my-message-color: #3a3b40;
         }
 
         body {
@@ -32,14 +30,12 @@
             margin: 0;
             display: flex;
             height: 100vh;
-            overflow: hidden; /* Prevents body scroll bars */
+            overflow: hidden;
         }
         
-        /* New CSS to hide the scrollbar but keep scrolling functionality */
-        /* For WebKit browsers (Chrome, Safari) */
         .sidebar, #chat-window, .right-sidebar {
-            -ms-overflow-style: none;  /* For Internet Explorer and Edge */
-            scrollbar-width: none;  /* For Firefox */
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
         
         .sidebar::-webkit-scrollbar, #chat-window::-webkit-scrollbar, .right-sidebar::-webkit-scrollbar {
@@ -56,7 +52,7 @@
             flex-direction: column;
             flex-shrink: 0;
             border-right: 1px solid var(--border-color);
-            overflow-y: auto; /* Keep scrolling on this panel */
+            overflow-y: auto;
         }
         
         .sidebar-search {
@@ -86,15 +82,6 @@
             padding: 0;
             margin: 0;
             margin-bottom: 1rem;
-        }
-        
-        .channel-list li, .dm-list li {
-            padding: 0.75rem 1rem;
-            cursor: pointer;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-            transition: background-color 0.2s, color 0.2s;
-            font-weight: 600;
         }
         
         .channel-list li.active, .dm-list li.active {
@@ -155,7 +142,7 @@
             margin: 0;
         }
         
-        #reset-app-btn-header {
+        #reset-app-btn-header, #logout-btn {
             background-color: var(--error-color);
             color: var(--text-color-primary);
             font-weight: 700;
@@ -164,8 +151,17 @@
             border-radius: 8px;
             cursor: pointer;
             transition: background-color 0.2s, transform 0.1s;
+            margin-left: 10px;
         }
         
+        #logout-btn {
+            background-color: var(--bg-color-secondary);
+            color: var(--text-color-secondary);
+        }
+        #logout-btn:hover {
+            background-color: var(--bg-color-primary);
+        }
+
         #reset-app-btn-header:hover {
             background-color: #c22b2f;
             transform: translateY(-1px);
@@ -178,9 +174,30 @@
             display: flex;
             flex-direction: column;
             gap: 1rem;
+            position: relative;
+        }
+        
+        #load-more-messages-btn {
+            position: sticky;
+            top: 10px;
+            align-self: center;
+            background-color: var(--highlight-color);
+            color: var(--text-color-primary);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.1s;
+            z-index: 10;
+        }
+        
+        #load-more-messages-btn:hover {
+            background-color: var(--highlight-hover);
+            transform: translateY(-1px);
         }
 
-        /* Styles for profile pictures and message layout */
         .message-wrapper {
             display: flex;
             gap: 1rem;
@@ -210,28 +227,29 @@
             word-wrap: break-word;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             transition: background-color 0.2s, transform 0.2s;
+            position: relative;
+            overflow: visible;
+        }
+        
+        .message.my-message {
+            background-color: var(--my-message-color);
+            margin-left: auto;
+            margin-right: 0;
+        }
+        
+        .message-wrapper.my-message-wrapper {
+            flex-direction: row-reverse;
         }
 
-        /* Highlight for replies sent to the current user */
         .message.highlight-for-me {
             background-color: var(--reply-highlight-color);
         }
 
-        /* New styles for a more subtle reply button */
-        .reply-btn {
+        .reply-btn, .edit-btn {
             position: absolute;
-            top: 5px;
-            right: 5px;
-            
-            visibility: hidden;
-            opacity: 0;
-            transition: opacity 0.2s, transform 0.2s;
-
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            top: -30px;
             padding: 4px 8px;
-            background-color: rgba(43, 45, 49, 0.7); /* Semi-transparent background */
+            background-color: rgba(43, 45, 49, 0.7);
             backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 8px;
@@ -241,19 +259,39 @@
             font-weight: 600;
             cursor: pointer;
             font-family: 'Inter', sans-serif;
+            z-index: 5;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-out, visibility 0s linear 0.5s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-
-        .reply-btn:hover {
-            background-color: rgba(43, 45, 49, 0.9);
-            transform: scale(1.05);
-        }
-
-        .message-wrapper:hover .reply-btn {
-            visibility: visible;
+        
+        .message-wrapper:hover .reply-btn,
+        .message-wrapper:hover .edit-btn {
             opacity: 1;
+            visibility: visible;
+            transition: opacity 0.5s ease-in, visibility 0s linear 0s; 
         }
 
-        /* Reply reference block */
+        .message .reply-btn {
+            right: 5px;
+        }
+        .message .edit-btn {
+            right: 80px;
+        }
+
+        .my-message-wrapper .message .reply-btn {
+            left: 5px;
+            right: auto;
+        }
+        .my-message-wrapper .message .edit-btn {
+            left: 80px;
+            right: auto;
+        }
+
+
         .reply-reference {
             display: flex;
             align-items: center;
@@ -263,6 +301,13 @@
             border-left: 2px solid var(--highlight-color);
             padding-left: 0.5rem;
             line-height: 1.2;
+            cursor: pointer;
+            transition: color 0.2s, background-color 0.2s;
+        }
+        
+        .reply-reference:hover {
+            color: var(--text-color-primary);
+            background-color: rgba(88, 101, 242, 0.1);
         }
         
         .reply-reference .reply-icon {
@@ -279,6 +324,24 @@
             color: var(--highlight-color);
             font-size: 0.9rem;
             margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .message .timestamp {
+            font-size: 0.75rem;
+            color: var(--text-color-secondary);
+            opacity: 0.8;
+            margin-left: 0.5rem;
+            font-weight: 400;
+        }
+        
+        .message .edited-tag {
+            font-size: 0.7rem;
+            color: var(--text-color-secondary);
+            margin-left: 0.5rem;
+            font-weight: 400;
+            opacity: 0.7;
         }
 
         .message .content {
@@ -287,14 +350,123 @@
             color: var(--text-color-primary);
         }
 
+        #image-preview-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background-color: var(--bg-color-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            max-width: fit-content;
+        }
+
+        #image-preview {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 4px;
+            object-fit: contain;
+        }
+
+        #cancel-image-btn {
+            background: none;
+            border: none;
+            color: var(--text-color-secondary);
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: color 0.2s;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+        }
+
+        #cancel-image-btn:hover {
+            color: var(--error-color);
+        }
+
+        .message .message-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+            display: block;
+            object-fit: contain;
+        }
+        
+        .message .link-preview-container {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+            background-color: var(--bg-color-tertiary);
+            max-width: 300px;
+            text-decoration: none;
+        }
+        .message .link-preview-container:hover {
+            filter: brightness(1.1);
+        }
+
+        .message .link-preview-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .message .link-preview-info {
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .message .link-preview-title {
+            font-weight: 600;
+            color: var(--text-color-primary);
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .message .link-preview-description {
+            font-size: 0.8rem;
+            color: var(--text-color-secondary);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .message .link-preview-url {
+            font-size: 0.75rem;
+            color: var(--highlight-color);
+            word-break: break-all;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         #message-form {
-            position: relative; /* Add position relative to contain the emoji picker */
+            position: relative;
             display: flex;
             flex-direction: column;
             padding: 1rem 1.5rem;
             border-top: 1px solid var(--border-color);
             background-color: var(--bg-color-tertiary);
             flex-shrink: 0;
+        }
+        
+        #typing-indicator {
+            font-size: 0.85rem;
+            color: var(--text-color-secondary);
+            margin-bottom: 0.5rem;
+            min-height: 1.2em;
         }
         
         #reply-status {
@@ -330,8 +502,7 @@
             gap: 0.75rem;
         }
         
-        /* New emoji button styling */
-        #emoji-picker-btn {
+        #emoji-picker-btn, #attach-image-btn {
             background-color: #55575c;
             color: var(--text-color-primary);
             border: none;
@@ -345,7 +516,7 @@
             justify-content: center;
         }
         
-        #emoji-picker-btn:hover {
+        #emoji-picker-btn:hover, #attach-image-btn:hover {
             background-color: var(--highlight-color);
             color: var(--text-color-primary);
             transform: translateY(-1px);
@@ -385,7 +556,7 @@
             transform: translateY(-1px);
         }
 
-        #username-modal, #password-modal, #reset-modal {
+        #auth-choice-modal, #register-modal, #login-modal, #reset-modal {
             position: fixed;
             top: 0;
             left: 0;
@@ -398,24 +569,22 @@
             z-index: 100;
         }
         
-        /* Updated emoji picker styling for a bigger size */
         #emoji-picker {
             position: absolute;
-            bottom: 110px; /* Adjust this to place it above the input field */
+            bottom: 110px;
             right: 1.5rem;
-            width: 350px; /* Made it wider */
-            height: 400px; /* Made it taller */
+            width: 350px;
+            height: 400px;
             background-color: var(--bg-color-secondary);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 1rem;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
             display: none;
-            flex-direction: column; /* Use column layout for search bar */
+            flex-direction: column;
             z-index: 99;
         }
         
-        /* Style for the search input inside the emoji picker */
         #emoji-search-input {
             width: 100%;
             background-color: var(--bg-color-tertiary);
@@ -424,7 +593,7 @@
             padding: 0.5rem;
             border-radius: 8px;
             font-size: 1rem;
-            margin-bottom: 1rem; /* Add some space below the search bar */
+            margin-bottom: 1rem;
         }
 
         #emoji-grid {
@@ -432,7 +601,7 @@
             flex-wrap: wrap;
             gap: 0.5rem;
             overflow-y: auto;
-            flex-grow: 1; /* Allow the grid to take up the remaining space */
+            flex-grow: 1;
         }
 
         #emoji-grid button {
@@ -442,7 +611,7 @@
             cursor: pointer;
             padding: 0.25rem;
             transition: transform 0.1s;
-            flex: 0 0 16.66%; /* 6 emojis per row */
+            flex: 0 0 16.66%;
             text-align: center;
         }
         
@@ -495,24 +664,26 @@
             transform: translateY(-2px);
         }
         
-        #username-error, #password-error {
+        .modal-content p.error {
             color: var(--error-color);
             margin-bottom: 1rem;
             font-size: 0.9rem;
-            height: 1.2em; /* Reserve space for the error message */
+            height: 1.2em;
         }
         
         #reset-modal .modal-content h2 {
             font-size: 1.5rem;
         }
         
-        #reset-modal .modal-buttons {
+        #reset-modal .modal-buttons,
+        #auth-choice-modal .modal-content .modal-buttons {
             display: flex;
             gap: 1rem;
             margin-top: 1.5rem;
         }
         
-        #reset-modal .modal-buttons button {
+        #reset-modal .modal-buttons button,
+        #auth-choice-modal .modal-content .modal-buttons button {
             width: 50%;
         }
         
@@ -524,17 +695,16 @@
             background-color: #c22b2f;
         }
         
-        #reset-cancel-btn {
+        #reset-cancel-btn, #login-choice-btn, #register-choice-btn, #register-cancel-btn, #login-cancel-btn {
             background-color: var(--bg-color-secondary);
             color: var(--text-color-secondary);
         }
 
-        #reset-cancel-btn:hover {
+        #reset-cancel-btn:hover, #login-choice-btn:hover, #register-choice-btn:hover, #register-cancel-btn:hover, #login-cancel-btn:hover {
             background-color: var(--bg-color-primary);
             transform: translateY(-2px);
         }
 
-        /* Responsive design for mobile devices */
         @media (max-width: 768px) {
             .sidebar {
                 width: 100%;
@@ -555,27 +725,40 @@
     </style>
 </head>
 <body>
-    <!-- Username input modal -->
-    <div id="username-modal">
+    <div id="auth-choice-modal" style="display: none;">
         <div class="modal-content">
-            <h2>Enter a Username</h2>
-            <input type="text" id="username-input" placeholder="Your name" autocomplete="off">
-            <div id="username-error"></div>
-            <button id="username-submit">Start Chatting</button>
+            <h2>Welcome to GangnamCord!</h2>
+            <div class="modal-buttons">
+                <button id="register-choice-btn">Register</button>
+                <button id="login-choice-btn">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="register-modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Register</h2>
+            <input type="text" id="register-username-input" placeholder="Choose a Display Name" autocomplete="off">
+            <input type="email" id="register-email-input" placeholder="Your Email" autocomplete="email">
+            <input type="password" id="register-password-input" placeholder="Choose a Password" autocomplete="new-password">
+            <input type="password" id="register-confirm-password-input" placeholder="Confirm Password" autocomplete="new-password">
+            <p id="register-error" class="error"></p>
+            <button id="register-submit">Register</button>
+            <button id="register-cancel-btn" style="margin-top: 1rem;">Cancel</button>
+        </div>
+    </div>
+
+    <div id="login-modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Login</h2>
+            <input type="email" id="login-email-input" placeholder="Your Email" autocomplete="email">
+            <input type="password" id="login-password-input" placeholder="Your Password" autocomplete="current-password">
+            <p id="login-error" class="error"></p>
+            <button id="login-submit">Login</button>
+            <button id="login-cancel-btn" style="margin-top: 1rem;">Cancel</button>
         </div>
     </div>
     
-    <!-- Password modal for the reset function -->
-    <div id="password-modal" style="display: none;">
-        <div class="modal-content">
-            <h2>Enter Password</h2>
-            <input type="password" id="password-input" placeholder="Password" autocomplete="off">
-            <div id="password-error"></div>
-            <button id="password-submit">Submit</button>
-        </div>
-    </div>
-    
-    <!-- Confirmation modal for the reset function -->
     <div id="reset-modal" style="display: none;">
         <div class="modal-content">
             <h2>Warning!</h2>
@@ -587,7 +770,6 @@
         </div>
     </div>
 
-    <!-- Main application layout -->
     <div class="sidebar">
         <input type="text" id="sidebar-search" class="sidebar-search" placeholder="Search...">
         
@@ -605,10 +787,15 @@
     <div class="main-content">
         <header>
             <h1 id="current-channel-name"># general</h1>
-            <button id="reset-app-btn-header">Reset App</button>
+            <div>
+                <button id="logout-btn" style="display:none;">Logout</button>
+                <button id="reset-app-btn-header" style="display: none;">Reset App</button>
+            </div>
         </header>
 
         <div id="chat-window">
+            <!-- New: Load More button -->
+            <button id="load-more-messages-btn" style="display:none;">Load More Messages</button>
             <!-- Messages will be displayed here -->
         </div>
         
@@ -621,11 +808,21 @@
         </div>
 
         <form id="message-form">
+            <!-- New: Image preview container -->
+            <div id="image-preview-container" style="display: none;">
+                <img id="image-preview" src="#" alt="Image preview">
+                <button type="button" id="cancel-image-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
             <div id="reply-status" style="display: none;">
                 <span>Replying to: <span id="reply-to-name"></span></span>
                 <button type="button" id="cancel-reply-btn"><i class="fa-solid fa-xmark"></i></button>
             </div>
+            <!-- New: Typing Indicator -->
+            <div id="typing-indicator"></div>
             <div class="message-input-container">
+                <button type="button" id="attach-image-btn"><i class="fa-solid fa-paperclip"></i></button>
+                <input type="file" id="image-input" accept="image/*" style="display:none;">
                 <button type="button" id="emoji-picker-btn">😊</button>
                 <input type="text" id="message-input" placeholder="Message #general" autocomplete="off">
                 <button type="submit">Send</button>
@@ -634,7 +831,6 @@
     </div>
 
     <script type="module">
-        // Import the necessary functions from the Firebase SDKs
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
         import { 
             getFirestore, 
@@ -650,25 +846,42 @@
             serverTimestamp,
             getDocs,
             deleteDoc,
+            orderBy, 
+            limit,   
+            startAfter, 
         } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword,   
+            signOut as firebaseSignOut,   
+            updateProfile                 
+        } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
         
         // --- Firebase Configuration and Initialization ---
-        // These global variables are provided by the Canvas environment.
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "AIzaSyDScWspAOEkPFSXj2DBzVQNRYIPyDUaTJ0",
-            authDomain: "gangnamcord.firebaseapp.com",
-            projectId: "gangnamcord",
-            storageBucket: "gangnamcord.firebasestorage.app",
-            messagingSenderId: "830528280139",
-            appId: "1:830528280139:web:e8155737379a86b7a5dfce"
+        // Your web app's Firebase configuration (provided by the user)
+        const firebaseConfig = {
+          apiKey: "AIzaSyAd2BAf_ArB5f2hsEBpPyVP7xosX5f27Q8",
+          authDomain: "discord-school-3f85b.firebaseapp.com",
+          projectId: "discord-school-3f85b",
+          storageBucket: "discord-school-3f85b.firebasestorage.app",
+          messagingSenderId: "769295138188",
+          appId: "1:769295138188:web:0297bf01ceeabf76d02aa9",
+          measurementId: "G-3877EJTW46" // Not used in this app's logic
         };
         
+        // Use the appId directly from the provided firebaseConfig
+        const appId = firebaseConfig.appId; 
+
         // Initialize Firebase services
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+
+        // --- Cloudinary Configuration (REPLACE THESE WITH YOUR OWN) ---
+        const CLOUDINARY_CLOUD_NAME = "dvxypcpj0"; 
+        const CLOUDINARY_UPLOAD_PRESET = "gangnamcord_unsigned_upload"; 
 
         // --- DOM Elements ---
         const sidebarSearchInput = document.getElementById('sidebar-search');
@@ -677,20 +890,36 @@
         const chatWindow = document.getElementById('chat-window');
         const messageForm = document.getElementById('message-form');
         const messageInput = document.getElementById('message-input');
-        const usernameModal = document.getElementById('username-modal');
-        const usernameInput = document.getElementById('username-input');
-        const usernameSubmitBtn = document.getElementById('username-submit');
-        const usernameError = document.getElementById('username-error');
-        const generalChannel = document.getElementById('general-channel');
-        const currentChannelName = document.getElementById('current-channel-name');
-        const resetAppBtnHeader = document.getElementById('reset-app-btn-header');
-        const passwordModal = document.getElementById('password-modal');
-        const passwordInput = document.getElementById('password-input');
-        const passwordSubmitBtn = document.getElementById('password-submit');
-        const passwordError = document.getElementById('password-error');
+        
+        const authChoiceModal = document.getElementById('auth-choice-modal');
+        const registerChoiceBtn = document.getElementById('register-choice-btn');
+        const loginChoiceBtn = document.getElementById('login-choice-btn');
+
+        const registerModal = document.getElementById('register-modal');
+        const registerUsernameInput = document.getElementById('register-username-input');
+        const registerEmailInput = document.getElementById('register-email-input'); 
+        const registerPasswordInput = document.getElementById('register-password-input');
+        const registerConfirmPasswordInput = document.getElementById('register-confirm-password-input');
+        const registerError = document.getElementById('register-error');
+        const registerSubmitBtn = document.getElementById('register-submit');
+        const registerCancelBtn = document.getElementById('register-cancel-btn');
+
+        const loginModal = document.getElementById('login-modal');
+        const loginEmailInput = document.getElementById('login-email-input'); 
+        const loginPasswordInput = document.getElementById('login-password-input');
+        const loginError = document.getElementById('login-error');
+        const loginSubmitBtn = document.getElementById('login-submit');
+        const loginCancelBtn = document.getElementById('login-cancel-btn');
+
         const resetModal = document.getElementById('reset-modal');
         const resetConfirmBtn = document.getElementById('reset-confirm-btn');
         const resetCancelBtn = document.getElementById('reset-cancel-btn');
+
+        const generalChannel = document.getElementById('general-channel');
+        const currentChannelName = document.getElementById('current-channel-name');
+        const resetAppBtnHeader = document.getElementById('reset-app-btn-header');
+        const logoutBtn = document.getElementById('logout-btn'); 
+
         const replyStatus = document.getElementById('reply-status');
         const replyToNameSpan = document.getElementById('reply-to-name');
         const cancelReplyBtn = document.getElementById('cancel-reply-btn');
@@ -698,128 +927,50 @@
         const emojiPicker = document.getElementById('emoji-picker');
         const emojiSearchInput = document.getElementById('emoji-search-input');
         const emojiGrid = document.getElementById('emoji-grid');
+        const loadMoreMessagesBtn = document.getElementById('load-more-messages-btn'); 
+        const typingIndicator = document.getElementById('typing-indicator');
+        
+        const attachImageBtn = document.getElementById('attach-image-btn');
+        const imageInput = document.getElementById('image-input');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        const cancelImageBtn = document.getElementById('cancel-image-btn');
 
         // --- Global State Variables ---
-        const RESET_PASSWORD = "saojosedormindo";
+        const ADMIN_USERNAME = "Admin"; 
+        const MIN_PASSWORD_LENGTH = 6; 
+
         let currentUserId = null;
         let currentUserName = null;
         let currentChannel = 'general';
         let onlineUsersListener = null;
         let messagesListener = null;
+        let typingListener = null; 
         let pingInterval = null;
         let replyingTo = { messageId: null, senderName: null, replyToSenderId: null };
+        let editingMessageId = null; 
+        let attachedImageFile = null; 
+
+        const MESSAGE_COOLDOWN_MS = 2000; 
+        let lastSentMessageTime = 0; 
+
         const initialLoadTimestamp = Date.now();
         
-        // Cache for all online user data
-        let allOnlineUsers = [];
+        const MESSAGE_LOAD_LIMIT = 20; 
+        let lastVisibleMessage = null; 
+        let hasMoreMessages = true; 
 
-        // Comprehensive list of emojis with searchable keywords
+        let allOnlineUsers = [];
+        let typingUsers = []; 
+
         const emojis = [
-            { emoji: '😀', keywords: ['grinning', 'face', 'smile'] },
-            { emoji: '😁', keywords: ['grinning', 'eyes', 'face', 'smile'] },
-            { emoji: '😂', keywords: ['face', 'tears', 'joy', 'laughing'] },
-            { emoji: '🤣', keywords: ['rolling', 'laughing', 'floor'] },
-            { emoji: '😃', keywords: ['grinning', 'big', 'smile', 'eyes'] },
-            { emoji: '😄', keywords: ['grinning', 'smile', 'sweat'] },
-            { emoji: '😅', keywords: ['grinning', 'face', 'smile', 'sweat'] },
-            { emoji: '😆', keywords: ['laughing', 'grin', 'face'] },
-            { emoji: '😉', keywords: ['winking', 'face', 'wink'] },
-            { emoji: '😊', keywords: ['blushing', 'smiling', 'face', 'happy'] },
-            { emoji: '😋', keywords: ['savoring', 'food', 'yummy', 'tongue'] },
-            { emoji: '😎', keywords: ['sunglasses', 'cool', 'face'] },
-            { emoji: '😍', keywords: ['heart', 'eyes', 'love', 'in love'] },
-            { emoji: '😘', keywords: ['kissing', 'face', 'kiss'] },
-            { emoji: '🥰', keywords: ['hearts', 'face', 'love', 'smiling'] },
-            { emoji: '😗', keywords: ['kissing', 'puckered', 'face'] },
-            { emoji: '😙', keywords: ['kissing', 'smiling', 'face'] },
-            { emoji: '😚', keywords: ['kissing', 'closed', 'eyes', 'face'] },
-            { emoji: '🙂', keywords: ['slight', 'smile', 'face'] },
-            { emoji: '🤗', keywords: ['hugging', 'face', 'hug'] },
-            { emoji: '🤩', keywords: ['star', 'struck', 'eyes', 'wow'] },
-            { emoji: '🤔', keywords: ['thinking', 'face', 'ponder'] },
-            { emoji: '🤨', keywords: ['raised', 'eyebrow', 'skeptical', 'face'] },
-            { emoji: '😐', keywords: ['neutral', 'face', 'meh'] },
-            { emoji: '😑', keywords: ['expressionless', 'face'] },
-            { emoji: '😶', keywords: ['mouth', 'face', 'quiet'] },
-            { emoji: '😏', keywords: ['smirking', 'face', 'smirk'] },
-            { emoji: '😒', keywords: ['unamused', 'face', 'disappointed'] },
-            { emoji: '🙄', keywords: ['rolling', 'eyes', 'eyeroll'] },
-            { emoji: '😬', keywords: ['grimacing', 'face', 'grimace'] },
-            { emoji: '🤥', keywords: ['liar', 'face', 'pinocchio'] },
-            { emoji: '😌', keywords: ['relieved', 'face', 'calm'] },
-            { emoji: '😔', keywords: ['pensive', 'face', 'sad'] },
-            { emoji: '😪', keywords: ['sleepy', 'face', 'tired'] },
-            { emoji: '🤤', keywords: ['drooling', 'face', 'hungry'] },
-            { emoji: '😴', keywords: ['sleeping', 'face', 'zzz'] },
-            { emoji: '😷', keywords: ['mask', 'face', 'sick'] },
-            { emoji: '�', keywords: ['thermometer', 'face', 'fever'] },
-            { emoji: '🤕', keywords: ['bandage', 'face', 'hurt'] },
-            { emoji: '🤢', keywords: ['nauseated', 'face', 'sick'] },
-            { emoji: '🤮', keywords: ['vomiting', 'face', 'puke'] },
-            { emoji: '🤧', keywords: ['sneezing', 'face', 'sneeze'] },
-            { emoji: '🥵', keywords: ['hot', 'face', 'sweating'] },
-            { emoji: '🥶', keywords: ['cold', 'face', 'frozen'] },
-            { emoji: '😵', keywords: ['dizzy', 'face', 'dizzy'] },
-            { emoji: '🤯', keywords: ['exploding', 'head', 'mindblown'] },
-            { emoji: '🤠', keywords: ['cowboy', 'hat', 'face'] },
-            { emoji: '🥳', keywords: ['partying', 'face', 'celebration'] },
-            { emoji: '🥸', keywords: ['disguised', 'face', 'glasses', 'mustache'] },
-            { emoji: '🥺', keywords: ['pleading', 'face', 'puppy', 'eyes'] },
-            { emoji: '😤', keywords: ['steam', 'from', 'nose', 'face', 'triumph'] },
-            { emoji: '😢', keywords: ['crying', 'face', 'sad'] },
-            { emoji: '😭', keywords: ['loudly', 'crying', 'face', 'sobbing'] },
-            { emoji: '😥', keywords: ['disappointed', 'but', 'relieved', 'face'] },
-            { emoji: '😩', keywords: ['weary', 'face', 'tired'] },
-            { emoji: '😫', keywords: ['tired', 'face', 'weary'] },
-            { emoji: '😨', keywords: ['fearful', 'face', 'scared'] },
-            { emoji: '😱', keywords: ['face', 'scream', 'fear'] },
-            { emoji: '😖', keywords: ['confounded', 'face', 'confused'] },
-            { emoji: '😣', keywords: ['persevering', 'face', 'persevere'] },
-            { emoji: '😠', keywords: ['angry', 'face'] },
-            { emoji: '😡', keywords: ['pouting', 'face', 'rage'] },
-            { emoji: '💀', keywords: ['skull', 'death', 'dead'] },
-            { emoji: '👻', keywords: ['ghost', 'halloween'] },
-            { emoji: '🤖', keywords: ['robot', 'face'] },
-            { emoji: '💩', keywords: ['poop', 'pile', 'crap'] },
-            { emoji: '❤️', keywords: ['heart', 'love', 'red'] },
-            { emoji: '🧡', keywords: ['heart', 'orange'] },
-            { emoji: '💛', keywords: ['heart', 'yellow'] },
-            { emoji: '💚', keywords: ['heart', 'green'] },
-            { emoji: '💙', keywords: ['heart', 'blue'] },
-            { emoji: '💜', keywords: ['heart', 'purple'] },
-            { emoji: '🤎', keywords: ['heart', 'brown'] },
-            { emoji: '🖤', keywords: ['heart', 'black'] },
-            { emoji: '🤍', keywords: ['heart', 'white'] },
-            { emoji: '💯', keywords: ['hundred', 'score', 'perfect'] },
-            { emoji: '👍', keywords: ['thumbs', 'up', 'like', 'good'] },
-            { emoji: '👎', keywords: ['thumbs', 'down', 'dislike', 'bad'] },
-            { emoji: '🎉', keywords: ['party', 'popper', 'celebration'] },
-            { emoji: '🎊', keywords: ['confetti', 'ball', 'celebration'] },
-            { emoji: '🎈', keywords: ['balloon', 'party'] },
-            { emoji: '🎁', keywords: ['gift', 'present', 'box'] },
-            { emoji: '🎂', keywords: ['cake', 'birthday'] },
-            { emoji: '🍕', keywords: ['pizza', 'slice', 'food'] },
-            { emoji: '🍔', keywords: ['hamburger', 'burger', 'food'] },
-            { emoji: '🍟', keywords: ['french', 'fries', 'food'] },
-            { emoji: '🌮', keywords: ['taco', 'food', 'mexican'] },
-            { emoji: '🍣', keywords: ['sushi', 'food', 'japanese'] },
-            { emoji: '☕', keywords: ['coffee', 'tea', 'drink'] },
-            { emoji: '🍺', keywords: ['beer', 'mug', 'drink'] },
-            { emoji: '😂', keywords: ['face', 'tears', 'joy', 'laughing'] },
-            { emoji: '🔥', keywords: ['fire', 'flame', 'hot'] },
-            { emoji: '🚀', keywords: ['rocket', 'ship', 'launch'] },
-            { emoji: '💡', keywords: ['light', 'bulb', 'idea'] },
-            { emoji: '💰', keywords: ['money', 'bag', 'cash'] },
-            { emoji: '💻', keywords: ['laptop', 'computer', 'tech'] },
-            { emoji: '📱', keywords: ['mobile', 'phone', 'smartphone'] },
-            { emoji: '✅', keywords: ['check', 'mark', 'yes', 'correct'] },
-            { emoji: '❌', keywords: ['cross', 'mark', 'no', 'incorrect'] },
-            { emoji: '❓', keywords: ['question', 'mark'] },
-            { emoji: '❗', keywords: ['exclamation', 'mark'] }
+            { emoji: '😀', keywords: ['grinning', 'face', 'smile'] }, { emoji: '😁', keywords: ['grinning', 'eyes', 'face', 'smile'] }, { emoji: '😂', keywords: ['face', 'tears', 'joy', 'laughing'] }, { emoji: '🤣', keywords: ['rolling', 'laughing', 'floor'] }, { emoji: '😃', keywords: ['grinning', 'big', 'smile', 'eyes'] }, { emoji: '😅', keywords: ['grinning', 'face', 'smile', 'sweat'] }, { emoji: '😆', keywords: ['laughing', 'grin', 'face'] }, { emoji: '😉', keywords: ['winking', 'face', 'wink'] }, { emoji: '😊', keywords: ['blushing', 'smiling', 'face', 'happy'] }, { emoji: '😋', keywords: ['savoring', 'food', 'yummy', 'tongue'] }, { emoji: '😎', keywords: ['sunglasses', 'cool', 'face'] }, { emoji: '😍', keywords: ['heart', 'eyes', 'love', 'in love'] }, { emoji: '😘', keywords: ['kissing', 'face', 'kiss'] }, { emoji: '🥰', keywords: ['hearts', 'face', 'love', 'smiling'] }, { emoji: '🤔', keywords: ['thinking', 'face', 'ponder'] }, { emoji: '🤢', keywords: ['nauseated', 'face', 'sick'] }, { emoji: '🤮', keywords: ['vomiting', 'face', 'puke'] }, { emoji: '🤧', keywords: ['sneezing', 'face', 'sneeze'] }, { emoji: '🥵', keywords: ['hot', 'face', 'sweating'] }, { emoji: '🥶', keywords: ['cold', 'face', 'frozen'] }, { emoji: '😵', keywords: ['dizzy', 'face', 'dizzy'] }, { emoji: '🤯', keywords: ['exploding', 'head', 'mindblown'] }, { emoji: '🤠', keywords: ['cowboy', 'hat', 'face'] }, { emoji: '🥳', keywords: ['partying', 'face', 'celebration'] }, { emoji: '🥺', keywords: ['pleading', 'face', 'puppy', 'eyes'] }, { emoji: '😤', keywords: ['steam', 'from', 'nose', 'face', 'triumph'] }, { emoji: '😢', keywords: ['crying', 'face', 'sad'] }, { emoji: '😭', keywords: ['loudly', 'crying', 'face', 'sobbing'] }, { emoji: '💀', keywords: ['skull', 'death', 'dead'] }, { emoji: '👻', keywords: ['ghost', 'halloween'] }, { emoji: '🤖', keywords: ['robot', 'face'] }, { emoji: '💩', keywords: ['poop', 'pile', 'crap'] }, { emoji: '❤️', keywords: ['heart', 'love', 'red'] }, { emoji: '🧡', keywords: ['heart', 'orange'] }, { emoji: '💛', keywords: ['heart', 'yellow'] }, { emoji: '💚', keywords: ['heart', 'green'] }, { emoji: '💙', keywords: ['heart', 'blue'] }, { emoji: '💜', keywords: ['heart', 'purple'] }, { emoji: '🤎', keywords: ['heart', 'brown'] }, { emoji: '🖤', keywords: ['heart', 'black'] }, { emoji: '🤍', keywords: ['heart', 'white'] }, { emoji: '💯', keywords: ['hundred', 'score', 'perfect'] }, { emoji: '👍', keywords: ['thumbs', 'up', 'like', 'good'] }, { emoji: '👎', keywords: ['thumbs', 'down', 'dislike', 'bad'] }, { emoji: '🎉', keywords: ['party', 'popper', 'celebration'] }, { emoji: '🎊', keywords: ['confetti', 'ball', 'celebration'] }, { emoji: '🎈', keywords: ['balloon', 'party'] }, { emoji: '🎁', keywords: ['gift', 'present', 'box'] }, { emoji: '🎂', keywords: ['cake', 'birthday'] }, { emoji: '🍕', keywords: ['pizza', 'slice', 'food'] }, { emoji: '🍔', keywords: ['hamburger', 'burger', 'food'] }, { emoji: '🍟', keywords: ['french', 'fries', 'food'] }, { emoji: '🌮', keywords: ['taco', 'food', 'mexican'] }, { emoji: '🍣', keywords: ['sushi', 'food', 'japanese'] }, { emoji: '☕', keywords: ['coffee', 'tea', 'drink'] }, { emoji: '🍺', keywords: ['beer', 'mug', 'drink'] }, { emoji: '😂', keywords: ['face', 'tears', 'joy', 'laughing'] }, { emoji: '🔥', keywords: ['fire', 'flame', 'hot'] }, { emoji: '🚀', keywords: ['rocket', 'ship', 'launch'] }, { emoji: '💡', keywords: ['light', 'bulb', 'idea'] }, { emoji: '💰', keywords: ['money', 'bag', 'cash'] }, { emoji: '💻', keywords: ['laptop', 'computer', 'tech'] }, { emoji: '📱', keywords: ['mobile', 'phone', 'smartphone'] }, { emoji: '✅', keywords: ['check', 'mark', 'yes', 'correct'] }, { emoji: '❌', keywords: ['cross', 'mark', 'no', 'incorrect'] }, { emoji: '❓', keywords: ['question', 'mark'] }, { emoji: '❗', keywords: ['exclamation', 'mark'] }
         ];
 
-        // --- Helper Functions ---
-        // A simple hash function to generate a consistent color from a string
+        const USERS_COLLECTION = `artifacts/${appId}/public/data/users`;
+        const MESSAGES_COLLECTION = `artifacts/${appId}/public/data/messages`;
+        const CONTROL_COLLECTION = `artifacts/${appId}/public/data/control`;
+
         function stringToColor(str) {
             let hash = 0;
             for (let i = 0; i < str.length; i++) {
@@ -828,104 +979,260 @@
             let color = '#';
             for (let i = 0; i < 3; i++) {
                 let value = (hash >> (i * 8)) & 0xFF;
-                color += ('00' + value.toString(16)).substr(-2);
+                color += ('00' + value.toString(16)).padStart(2, '0');
             }
             return color;
         }
+        
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
 
-        // --- User Presence and Authentication ---
-        // This function pings the server to update the user's 'lastSeen' timestamp.
+        function getYouTubeVideoId(url) {
+            const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|\/channel\/[^/]+\/|\/user\/[^/]+\/|youtu\.be\/|\/v\/|\/e\/|\/embed\/|watch\?.*v=|\?.*v=|\&.*v=))([^"&?\/\s]{11})/;
+            const match = url.match(regex);
+            return match ? match[1] : null;
+        }
+
         async function ping() {
             if (currentUserId) {
                 try {
-                    const userDocRef = doc(db, `artifacts/${appId}/public/data/users`, currentUserId);
-                    await updateDoc(userDocRef, { lastSeen: serverTimestamp() });
+                    const userDocRef = doc(db, USERS_COLLECTION, currentUserId);
+                    await updateDoc(userDocRef, { 
+                        lastSeen: serverTimestamp(),
+                        isTyping: messageInput.value.trim().length > 0 && document.activeElement === messageInput
+                    });
                 } catch (error) {
                     console.error("Error updating user timestamp:", error);
                 }
             }
         }
 
-        // Authentication state listener
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                console.log("User is signed in.");
+                console.log("Firebase user state changed. UID:", user.uid);
                 currentUserId = user.uid;
 
-                // Check if user has a username
-                const userDocRef = doc(db, `artifacts/${appId}/public/data/users`, currentUserId);
-                const userDocSnap = await getDoc(userDocRef);
-
-                if (userDocSnap.exists()) {
-                    const userData = userDocSnap.data();
-                    currentUserName = userData.username;
-                    usernameModal.style.display = 'none';
-                    startListening();
-                    console.log(`Welcome back, ${currentUserName}!`);
+                if (user.isAnonymous) {
+                    console.log("Anonymous user detected. Prompting for authentication.");
+                    authChoiceModal.style.display = 'flex';
+                    logoutBtn.style.display = 'none'; 
                 } else {
-                    // No username found, show modal to set one
-                    usernameModal.style.display = 'flex';
+                    currentUserName = user.displayName;
+                    console.log(`User logged in: ${currentUserName} (UID: ${currentUserId})`);
+                    
+                    authChoiceModal.style.display = 'none';
+                    registerModal.style.display = 'none';
+                    loginModal.style.display = 'none';
+
+                    const userDocRef = doc(db, USERS_COLLECTION, currentUserId);
+                    const userDocSnap = await getDoc(userDocRef);
+                    if (!userDocSnap.exists()) {
+                        await setDoc(userDocRef, {
+                            username: currentUserName, 
+                            email: user.email, 
+                            lastSeen: serverTimestamp(),
+                            isTyping: false
+                        });
+                    } else {
+                        await updateDoc(userDocRef, {
+                            username: currentUserName,
+                            lastSeen: serverTimestamp(),
+                            isTyping: false
+                        });
+                    }
+
+                    startListening();
+                    if (currentUserName === ADMIN_USERNAME) {
+                        resetAppBtnHeader.style.display = 'block';
+                    } else {
+                        resetAppBtnHeader.style.display = 'none';
+                    }
+                    logoutBtn.style.display = 'inline-block';
                 }
             } else {
-                console.log("User is signed out. Signing in anonymously...");
-                // Handle anonymous sign-in
-                if (typeof __initial_auth_token !== 'undefined') {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
+                console.log("Firebase user is signed out.");
+                currentUserId = null;
+                currentUserName = null;
+
+                if (onlineUsersListener) onlineUsersListener();
+                if (messagesListener) messagesListener();
+                if (typingListener) typingListener();
+                if (pingInterval) clearInterval(pingInterval);
+
+                resetAppBtnHeader.style.display = 'none';
+                logoutBtn.style.display = 'none';
+                chatWindow.innerHTML = '';
+                dmList.innerHTML = '';
+                sidebarSearchInput.value = '';
+                currentChannelName.textContent = '# general';
+                authChoiceModal.style.display = 'flex'; 
+
+                try {
+                    // Attempt to sign in anonymously if no user is present
+                    // This ensures there's always a Firebase UID for Firestore interactions even before custom login
+                    // and allows the onAuthStateChanged to re-trigger for handling authChoiceModal logic.
+                    // This anonymous sign-in is managed by Firebase and is distinct from your custom Email/Password auth.
+                    await auth.signInAnonymously();
+                    console.log("Signed in anonymously to get a UID.");
+                } catch (anonError) {
+                    console.error("Error signing in anonymously:", anonError);
                 }
             }
         });
         
-        // Event listener for setting the username
-        usernameSubmitBtn.addEventListener('click', async () => {
-            const username = usernameInput.value.trim();
+        registerChoiceBtn.addEventListener('click', () => {
+            authChoiceModal.style.display = 'none';
+            registerModal.style.display = 'flex';
+            registerError.textContent = '';
+            registerUsernameInput.value = '';
+            registerEmailInput.value = '';
+            registerPasswordInput.value = '';
+            registerConfirmPasswordInput.value = '';
+        });
+
+        loginChoiceBtn.addEventListener('click', () => {
+            authChoiceModal.style.display = 'none';
+            loginModal.style.display = 'flex';
+            loginError.textContent = '';
+            loginEmailInput.value = '';
+            loginPasswordInput.value = '';
+        });
+
+        registerCancelBtn.addEventListener('click', () => {
+            registerModal.style.display = 'none';
+            authChoiceModal.style.display = 'flex';
+        });
+
+        loginCancelBtn.addEventListener('click', () => {
+            loginModal.style.display = 'none';
+            authChoiceModal.style.display = 'flex';
+        });
+
+        registerSubmitBtn.addEventListener('click', async () => {
+            const username = registerUsernameInput.value.trim();
+            const email = registerEmailInput.value.trim();
+            const password = registerPasswordInput.value;
+            const confirmPassword = registerConfirmPasswordInput.value;
+            registerError.textContent = '';
+
             if (username.length < 4 || username.length > 15) {
-                usernameError.textContent = 'Username must be between 4 and 15 characters.';
+                registerError.textContent = 'Display name must be 4-15 characters.';
                 return;
             }
-            
-            if (username) {
-                currentUserName = username;
-                try {
-                    // Create a user document in the Firestore database
-                    await setDoc(doc(db, `artifacts/${appId}/public/data/users`, currentUserId), {
-                        username: currentUserName,
-                        lastSeen: serverTimestamp(), // Use a timestamp to track online status
-                    });
-                    usernameModal.style.display = 'none';
-                    startListening();
-                } catch (error) {
-                    console.error("Error setting username:", error);
+            const profanityList = ['badword', 'swear', 'fuck', 'shit']; 
+            if (profanityList.some(word => username.toLowerCase().includes(word))) {
+                 registerError.textContent = 'Display name contains inappropriate words.';
+                 return;
+            }
+            if (!email) {
+                registerError.textContent = 'Email is required.';
+                return;
+            }
+            if (password.length < MIN_PASSWORD_LENGTH) {
+                registerError.textContent = `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
+                return;
+            }
+            if (password !== confirmPassword) {
+                registerError.textContent = 'Passwords do not match.';
+                return;
+            }
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                await updateProfile(user, { displayName: username });
+
+                const userDocRef = doc(db, USERS_COLLECTION, user.uid);
+                await setDoc(userDocRef, {
+                    username: username, 
+                    email: email, 
+                    lastSeen: serverTimestamp(), 
+                    isTyping: false 
+                });
+
+                registerModal.style.display = 'none';
+
+            } catch (error) {
+                console.error("Error during registration:", error.code, error.message);
+                if (error.code === 'auth/email-already-in-use') {
+                    registerError.textContent = 'That email address is already in use.';
+                } else if (error.code === 'auth/invalid-email') {
+                    registerError.textContent = 'Invalid email address format.';
+                } else if (error.code === 'auth/weak-password') {
+                    registerError.textContent = 'Password is too weak.';
+                }
+                else {
+                    registerError.textContent = 'Registration failed: ' + error.message;
                 }
             }
         });
 
-        // Update user status on window close/reload
+        loginSubmitBtn.addEventListener('click', async () => {
+            const email = loginEmailInput.value.trim();
+            const password = loginPasswordInput.value;
+            loginError.textContent = '';
+
+            if (!email || !password) {
+                loginError.textContent = 'Please enter email and password.';
+                return;
+            }
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                loginModal.style.display = 'none';
+
+            } catch (error) {
+                console.error("Error during login:", error.code, error.message);
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential' || error.code === 'auth/invalid-email' || error.code === 'auth/user-disabled') {
+                    loginError.textContent = 'Invalid email or password.';
+                }
+                else {
+                    loginError.textContent = 'Login failed: ' + error.message;
+                }
+            }
+        });
+        
+        logoutBtn.addEventListener('click', async () => {
+            if (currentUserId) {
+                try {
+                    await updateDoc(doc(db, USERS_COLLECTION, currentUserId), { 
+                        lastSeen: new Date(0), 
+                        isTyping: false 
+                    });
+                    console.log("User status updated to offline.");
+                } catch (error) {
+                    console.error("Error updating user status on logout:", error);
+                }
+            }
+            firebaseSignOut(auth); 
+            console.log("Logged out.");
+        });
+
         window.addEventListener('beforeunload', async () => {
             if (currentUserId) {
                 try {
-                    // Explicitly set `lastSeen` to a very old timestamp to indicate offline status
-                    await updateDoc(doc(db, `artifacts/${appId}/public/data/users`, currentUserId), { lastSeen: new Date(0) });
+                    await updateDoc(doc(db, USERS_COLLECTION, currentUserId), { 
+                        lastSeen: new Date(0),
+                        isTyping: false 
+                    });
                 } catch (error) {
                     console.error("Error updating user status on unload:", error);
                 }
             }
         });
         
-        // --- Reset functionality ---
         resetAppBtnHeader.addEventListener('click', () => {
-            passwordModal.style.display = 'flex';
-        });
-
-        passwordSubmitBtn.addEventListener('click', () => {
-            if (passwordInput.value === RESET_PASSWORD) {
-                passwordModal.style.display = 'none';
-                passwordError.textContent = '';
-                passwordInput.value = ''; // Clear the password field
+            if (currentUserName === ADMIN_USERNAME) {
                 resetModal.style.display = 'flex';
             } else {
-                passwordError.textContent = 'Incorrect password.';
+                alert("You do not have permission to reset the application.");
             }
         });
 
@@ -935,72 +1242,73 @@
 
         resetConfirmBtn.addEventListener('click', async () => {
             resetModal.style.display = 'none';
+            if (currentUserName !== ADMIN_USERNAME) {
+                console.error("Attempted reset by non-admin user.");
+                alert("Permission denied.");
+                return;
+            }
             try {
-                // Unsubscribe all listeners before deleting data
                 if (onlineUsersListener) onlineUsersListener();
                 if (messagesListener) messagesListener();
+                if (typingListener) typingListener(); 
                 if (pingInterval) clearInterval(pingInterval);
 
-                // Delete all users
-                const usersQuery = query(collection(db, `artifacts/${appId}/public/data/users`));
+                const usersQuery = query(collection(db, USERS_COLLECTION));
                 const usersSnapshot = await getDocs(usersQuery);
                 const userDeletions = usersSnapshot.docs.map(d => deleteDoc(d.ref));
                 await Promise.all(userDeletions);
                 console.log("All users deleted.");
 
-                // Delete all messages
-                const messagesQuery = query(collection(db, `artifacts/${appId}/public/data/messages`));
+                const messagesQuery = query(collection(db, MESSAGES_COLLECTION));
                 const messagesSnapshot = await getDocs(messagesQuery);
                 const messageDeletions = messagesSnapshot.docs.map(d => deleteDoc(d.ref));
                 await Promise.all(messageDeletions);
                 console.log("All messages deleted.");
 
-                // Update a special 'control' document to trigger a reload on all other clients
-                const controlDocRef = doc(db, `artifacts/${appId}/public/data/control`, 'app_state');
+                const controlDocRef = doc(db, CONTROL_COLLECTION, 'app_state');
                 await setDoc(controlDocRef, {
                     lastResetTimestamp: serverTimestamp()
                 });
 
-                // Reload the current user's page to start fresh
                 window.location.reload(); 
             } catch (error) {
                 console.error("Error resetting app:", error);
+                alert("Failed to reset application. Check console for details.");
             }
         });
 
 
-        // --- Chat and Message Handling ---
         function startListening() {
-            // Start the ping interval to keep the user's presence active
             if (pingInterval) clearInterval(pingInterval);
-            pingInterval = setInterval(ping, 5000); // Ping every 5 seconds
+            pingInterval = setInterval(ping, 5000); 
 
-            // Public channel listener
             generalChannel.addEventListener('click', () => switchChannel('general', '# general'));
             
-            // Listen for online users and update the DM list on the sidebar
-            if (onlineUsersListener) onlineUsersListener(); // Unsubscribe previous listener
+            if (onlineUsersListener) onlineUsersListener(); 
             
-            const qOnlineUsers = query(collection(db, `artifacts/${appId}/public/data/users`));
+            const qOnlineUsers = query(collection(db, USERS_COLLECTION));
             
             onlineUsersListener = onSnapshot(qOnlineUsers, snapshot => {
-                allOnlineUsers = []; // Clear the cached list
+                allOnlineUsers = []; 
+                typingUsers = []; 
                 const fiveSecondsAgo = new Date(Date.now() - 5000); 
                 snapshot.forEach(doc => {
                     const user = doc.data();
-                    if (user.lastSeen && user.lastSeen.toDate() > fiveSecondsAgo) {
+                    if (user.lastSeen && user.lastSeen.toDate() > fiveSecondsAgo && doc.id !== currentUserId) {
                         allOnlineUsers.push({ id: doc.id, username: user.username });
+                        if (user.isTyping) { 
+                            typingUsers.push(user.username);
+                        }
                     }
                 });
                 updateSidebarLists();
+                updateTypingIndicator(); 
             });
             
-            // Listen for global reset events
-            const controlDocRef = doc(db, `artifacts/${appId}/public/data/control`, 'app_state');
+            const controlDocRef = doc(db, CONTROL_COLLECTION, 'app_state');
             onSnapshot(controlDocRef, (doc) => {
                 if (doc.exists() && doc.data().lastResetTimestamp) {
                     const resetTimestamp = doc.data().lastResetTimestamp.toDate().getTime();
-                    // If the reset timestamp is newer than our initial load, reload the page
                     if (resetTimestamp > initialLoadTimestamp) {
                         console.log("Global reset detected, reloading app...");
                         window.location.reload();
@@ -1008,15 +1316,12 @@
                 }
             });
             
-            // Initial message listener for the #general channel
-            listenForMessages('general');
+            switchChannel('general'); 
         }
         
-        // New function to update the sidebar lists based on a search term
         function updateSidebarLists(searchTerm = '') {
             const lowerCaseSearch = searchTerm.toLowerCase();
 
-            // Handle the GROUPS list
             const groups = [{ id: 'general', name: 'general' }];
             groupList.innerHTML = '';
             groups.forEach(group => {
@@ -1033,7 +1338,6 @@
                 }
             });
 
-            // Handle the DMS list
             dmList.innerHTML = '';
             allOnlineUsers.filter(user => user.id !== currentUserId && user.username.toLowerCase().includes(lowerCaseSearch)).forEach(user => {
                 const dmListItem = document.createElement('li');
@@ -1053,27 +1357,28 @@
                 dmListItem.appendChild(usernameSpan);
                 dmList.appendChild(dmListItem);
 
-                // Add active class if this is the current DM channel
-                const dmId = [currentUserId, user.id].sort().join('_');
-                if (currentChannel === dmId) {
+                if (currentChannel === [currentUserId, user.id].sort().join('_')) {
                     dmListItem.classList.add('active');
                 }
             });
         }
         
-        // Event listener for the sidebar search bar
         sidebarSearchInput.addEventListener('input', (e) => {
             updateSidebarLists(e.target.value);
         });
 
-        // This function handles the logic for switching between channels and DMs
         function switchChannel(channelId, channelName = '# general', dmRecipientName = null) {
-            if (messagesListener) messagesListener(); // Unsubscribe previous message listener
-            
+            if (messagesListener) messagesListener();
+            if (typingListener) typingListener(); 
+
             currentChannel = channelId;
-            chatWindow.innerHTML = ''; // Clear chat window
+            chatWindow.innerHTML = ''; 
+            lastVisibleMessage = null; 
+            hasMoreMessages = true; 
+            loadMoreMessagesBtn.style.display = 'none'; 
             
-            // Remove active class from all channel/user list items
+            chatWindow.appendChild(loadMoreMessagesBtn);
+
             document.querySelectorAll('.channel-list li, .dm-list li').forEach(li => li.classList.remove('active'));
 
             if (channelId === 'general') {
@@ -1081,91 +1386,308 @@
                 currentChannelName.textContent = '# general';
                 messageInput.placeholder = 'Message #general';
             } else {
-                // Find the user list item with the recipient's ID and mark it as active
                 const dmRecipientId = channelId.split('_').filter(id => id !== currentUserId)[0];
                 const userListItem = dmList.querySelector(`[data-user-id="${dmRecipientId}"]`);
                 if (userListItem) userListItem.classList.add('active');
-                currentChannelName.textContent = `@ ${dmRecipientName}`;
-                messageInput.placeholder = `Message @${dmRecipientName}`;
+                currentChannelName.textContent = `@ ${dmRecipientName || allOnlineUsers.find(u => u.id === dmRecipientId)?.username || 'Unknown'}`;
+                messageInput.placeholder = `Message @${dmRecipientName || allOnlineUsers.find(u => u.id === dmRecipientId)?.username || 'Unknown'}`;
             }
             
-            listenForMessages(channelId);
+            listenForMessages(channelId, true); 
+            listenForTypingStatus(channelId); 
+            resetFormState(); 
         }
         
-        // This function generates a unique DM channel ID and switches to it
         function startDM(userId, username) {
-            // Create a unique channel ID by sorting the two user IDs and joining them
             const dmId = [currentUserId, userId].sort().join('_');
-            // Switch to the new DM channel, passing the recipient's name for the UI
             switchChannel(dmId, null, username);
         }
 
-        function listenForMessages(channelId) {
-            const qMessages = query(collection(db, `artifacts/${appId}/public/data/messages`), where('channelId', '==', channelId));
-            messagesListener = onSnapshot(qMessages, snapshot => {
-                const messages = [];
+        async function listenForMessages(channelId, isInitialLoad = false) {
+            const messagesRef = collection(db, MESSAGES_COLLECTION);
+            let qMessages;
+
+            if (isInitialLoad) {
+                qMessages = query(
+                    messagesRef,
+                    where('channelId', '==', channelId),
+                    orderBy('createdAt', 'desc'), 
+                    limit(MESSAGE_LOAD_LIMIT)
+                );
+            } else {
+                qMessages = query(
+                    messagesRef,
+                    where('channelId', '==', channelId),
+                    orderBy('createdAt', 'desc'),
+                    startAfter(lastVisibleMessage), 
+                    limit(MESSAGE_LOAD_LIMIT)
+                );
+            }
+
+            messagesListener = onSnapshot(qMessages, async snapshot => {
+                const newMessages = [];
+                const currentScrollHeight = chatWindow.scrollHeight;
+                const currentScrollTop = chatWindow.scrollTop;
+                const isAtBottom = chatWindow.scrollHeight - chatWindow.scrollTop <= chatWindow.clientHeight + 1; 
+
+                if (!snapshot.empty) {
+                    lastVisibleMessage = snapshot.docs[snapshot.docs.length - 1]; 
+                } else {
+                    hasMoreMessages = false;
+                    loadMoreMessagesBtn.style.display = 'none';
+                    return;
+                }
+
                 snapshot.forEach(doc => {
-                    messages.push({
+                    newMessages.push({
                         id: doc.id,
                         ...doc.data()
                     });
                 });
-                messages.sort((a, b) => a.createdAt - b.createdAt);
 
-                chatWindow.innerHTML = '';
-                messages.forEach(message => {
-                    displayMessage(message);
-                });
+                newMessages.sort((a, b) => a.createdAt - b.createdAt); 
+
+                if (isInitialLoad) {
+                    Array.from(chatWindow.children).forEach(child => {
+                        if (child !== loadMoreMessagesBtn) {
+                            chatWindow.removeChild(child);
+                        }
+                    });
+                    newMessages.forEach(msg => displayMessage(msg));
+                    chatWindow.scrollTop = chatWindow.scrollHeight; 
+                    
+                    if (snapshot.size === MESSAGE_LOAD_LIMIT) {
+                        loadMoreMessagesBtn.style.display = 'block';
+                    } else {
+                        loadMoreMessagesBtn.style.display = 'none';
+                        hasMoreMessages = false;
+                    }
+                } else {
+                    newMessages.forEach(msg => {
+                        const existingMsg = document.getElementById(`message-${msg.id}`);
+                        if (!existingMsg) { 
+                            const messageElement = createMessageElement(msg); 
+                            chatWindow.insertBefore(messageElement, loadMoreMessagesBtn.nextSibling);
+                        }
+                    });
+
+                    chatWindow.scrollTop = currentScrollTop + (chatWindow.scrollHeight - currentScrollHeight);
+                    if (snapshot.size < MESSAGE_LOAD_LIMIT) {
+                         hasMoreMessages = false;
+                         loadMoreMessagesBtn.style.display = 'none';
+                    } else {
+                        hasMoreMessages = true; 
+                        loadMoreMessagesBtn.style.display = 'block';
+                    }
+                }
                 
-                chatWindow.scrollTop = chatWindow.scrollHeight;
+                if (!isInitialLoad && isAtBottom && snapshot.docChanges().some(change => change.type === 'added')) {
+                    chatWindow.scrollTop = chatWindow.scrollHeight;
+                }
+
             }, (error) => {
                 console.error("Error in snapshot listener:", error);
-                console.error("A Firestore index may be missing. Check the developer console for a link to create the required index for this query.");
+                console.error("A Firestore security rule or index may be missing. Please check your Firebase console for the required settings.");
+                console.error("The full error is:", error.message);
+                alert("Failed to load messages. Check console for details.");
             });
         }
         
+        function listenForTypingStatus(channelId) {
+            if (typingListener) typingListener(); 
+
+            const qTypingUsers = query(collection(db, USERS_COLLECTION));
+
+            typingListener = onSnapshot(qTypingUsers, (snapshot) => {
+                typingUsers = [];
+                const fiveSecondsAgo = new Date(Date.now() - 5000); 
+
+                snapshot.forEach(doc => {
+                    const user = doc.data();
+                    if (user.lastSeen && user.lastSeen.toDate() > fiveSecondsAgo && doc.id !== currentUserId) {
+                        if (channelId === 'general') {
+                             typingUsers.push(user.username);
+                        } else {
+                            const dmRecipientId = channelId.split('_').filter(id => id !== currentUserId)[0];
+                            if (doc.id === dmRecipientId) {
+                                typingUsers.push(user.username);
+                            }
+                        }
+                    }
+                });
+                updateTypingIndicator();
+            });
+        }
+
+        function updateTypingIndicator() {
+            if (typingUsers.length === 0) {
+                typingIndicator.textContent = '';
+            } else if (typingUsers.length === 1) {
+                typingIndicator.textContent = `${typingUsers[0]} is typing...`;
+            } else if (typingUsers.length === 2) {
+                typingIndicator.textContent = `${typingUsers[0]} and ${typingUsers[1]} are typing...`;
+            } else {
+                typingIndicator.textContent = `${typingUsers.slice(0, 2).join(', ')} and ${typingUsers.length - 2} more are typing...`;
+            }
+        }
+
+        const setTypingStatus = debounce(async (isTyping) => {
+            if (currentUserId) {
+                const userDocRef = doc(db, USERS_COLLECTION, currentUserId);
+                await updateDoc(userDocRef, { isTyping: isTyping });
+            }
+        }, 500); 
+
+        messageInput.addEventListener('input', () => {
+            setTypingStatus(messageInput.value.trim().length > 0);
+        });
+
+        messageInput.addEventListener('focus', () => {
+            setTypingStatus(messageInput.value.trim().length > 0);
+        });
+
+        messageInput.addEventListener('blur', () => {
+            setTypingStatus(false); 
+        });
+
+
         messageForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const text = messageInput.value.trim();
-            if (text === '' || !currentUserId) return;
+            const currentTime = Date.now();
             
-            // Build the message data
-            const messageData = {
-                text: text,
-                createdAt: serverTimestamp(),
-                senderId: currentUserId,
-                senderName: currentUserName,
-                channelId: currentChannel
-            };
+            if (currentTime - lastSentMessageTime < MESSAGE_COOLDOWN_MS) {
+                alert(`Please wait ${((MESSAGE_COOLDOWN_MS - (currentTime - lastSentMessageTime)) / 1000).toFixed(1)} seconds before sending another message.`);
+                return;
+            }
 
-            // Add reply information if it exists
-            if (replyingTo.messageId) {
-                messageData.replyToMessageId = replyingTo.messageId;
-                messageData.replyToSenderName = replyingTo.senderName;
-                messageData.replyToSenderId = replyingTo.replyToSenderId; // Store the ID of the person being replied to
-                resetReplyState();
+            if (text === '' && !attachedImageFile) {
+                return;
+            }
+            if (!currentUserId || !currentUserName) { 
+                alert("You must be logged in to send messages.");
+                return;
             }
             
             try {
-                await addDoc(collection(db, `artifacts/${appId}/public/data/messages`), messageData);
-            
-                messageInput.value = '';
+                let imageUrl = null;
+                let detectedLink = null;
+                let linkThumbnail = null;
+                let linkTitle = null;
+                let linkDescription = null;
+
+                if (attachedImageFile) {
+                    imageUrl = await uploadImageToCloudinary(attachedImageFile);
+                    if (!imageUrl) {
+                        alert("Failed to upload image. Please try again.");
+                        return;
+                    }
+                }
+
+                const urlRegex = /(https?:\/\/[^\s]+)/g;
+                const matches = text.match(urlRegex);
+                if (matches && matches.length > 0) {
+                    detectedLink = matches[0];
+                    
+                    const youtubeVideoId = getYouTubeVideoId(detectedLink);
+                    if (youtubeVideoId) {
+                        linkThumbnail = `https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg`;
+                        linkTitle = "YouTube Video"; 
+                        linkDescription = "Click to watch on YouTube";
+                    } else {
+                        linkTitle = "External Link";
+                        linkDescription = "Click to visit website";
+                    }
+                }
+
+                if (editingMessageId) {
+                    const messageDocRef = doc(db, MESSAGES_COLLECTION, editingMessageId);
+                    await updateDoc(messageDocRef, {
+                        text: text,
+                        editedAt: serverTimestamp(),
+                    });
+                    console.log("Message updated:", editingMessageId);
+                } else {
+                    const messageData = {
+                        text: text,
+                        createdAt: serverTimestamp(),
+                        senderId: currentUserId,
+                        senderName: currentUserName,
+                        channelId: currentChannel
+                    };
+                    if (replyingTo.messageId) {
+                        messageData.replyToMessageId = replyingTo.messageId;
+                        messageData.replyToSenderName = replyingTo.senderName;
+                        messageData.replyToSenderId = replyingTo.replyToSenderId;
+                    }
+                    if (imageUrl) { 
+                        messageData.imageUrl = imageUrl;
+                    }
+                    if (detectedLink) {
+                        messageData.detectedLink = detectedLink;
+                        if (linkThumbnail) messageData.linkThumbnail = linkThumbnail;
+                        if (linkTitle) messageData.linkTitle = linkTitle;
+                        if (linkDescription) messageData.linkDescription = linkDescription;
+                    }
+
+                    await addDoc(collection(db, MESSAGES_COLLECTION), messageData);
+                    console.log("Message sent.");
+                    lastSentMessageTime = currentTime;
+                }
+                
+                resetFormState(); 
             } catch (error) {
-                console.error("Error sending message:", error);
+                console.error("Error sending/editing message or uploading media:", error);
+                alert("Failed to send/edit message or upload media. Please try again.");
             }
         });
 
-        cancelReplyBtn.addEventListener('click', () => {
-            resetReplyState();
-        });
-
-        function resetReplyState() {
+        function resetFormState() {
             replyingTo = { messageId: null, senderName: null, replyToSenderId: null };
+            editingMessageId = null;
+            attachedImageFile = null; 
+            imageInput.value = '';
+            imagePreviewContainer.style.display = 'none'; 
+            imagePreview.src = '#'; 
             replyStatus.style.display = 'none';
-            messageInput.placeholder = `Message #${currentChannel}`;
+            messageInput.value = ''; 
+            if (currentChannel === 'general') {
+                messageInput.placeholder = `Message #general`;
+            } else {
+                const dmRecipientId = currentChannel.split('_').filter(id => id !== currentUserId)[0];
+                const dmRecipientName = allOnlineUsers.find(u => u.id === dmRecipientId)?.username;
+                if (dmRecipientName) {
+                    messageInput.placeholder = `Message @${dmRecipientName}`;
+                } else {
+                    messageInput.placeholder = `Message in DM`;
+                }
+            }
+            setTypingStatus(false); 
         }
-        
-        // New function to create the profile picture element
+        cancelReplyBtn.addEventListener('click', resetFormState); 
+        cancelImageBtn.addEventListener('click', resetFormState); 
+
+        function setReplyState(messageId, senderName, replyToSenderId) {
+            resetFormState(); 
+            replyingTo.messageId = messageId;
+            replyingTo.senderName = senderName;
+            replyingTo.replyToSenderId = replyToSenderId;
+            replyStatus.style.display = 'flex';
+            replyToNameSpan.textContent = senderName;
+            messageInput.placeholder = `Replying to @${senderName}...`;
+            messageInput.focus();
+        }
+
+        function setEditState(messageId, messageText) {
+            resetFormState(); 
+            editingMessageId = messageId;
+            messageInput.value = messageText;
+            replyStatus.style.display = 'flex'; 
+            replyToNameSpan.textContent = `Editing message`; 
+            messageInput.placeholder = `Editing your message...`;
+            messageInput.focus();
+        }
+
         function createProfilePicture(username, size = 'large') {
             const initial = username.charAt(0).toUpperCase();
             const color = stringToColor(username);
@@ -1180,68 +1702,162 @@
             return profilePicElement;
         }
 
-        // Updated displayMessage function to include the reply feature
-        function displayMessage(message) {
+        function createMessageElement(message) {
             const messageWrapper = document.createElement('div');
             messageWrapper.classList.add('message-wrapper');
+            messageWrapper.id = `message-${message.id}`; 
+
+            const isMyMessage = message.senderId === currentUserId;
+            if (isMyMessage) {
+                messageWrapper.classList.add('my-message-wrapper');
+            }
 
             const profilePicElement = createProfilePicture(message.senderName);
             messageWrapper.appendChild(profilePicElement);
 
             const messageContentContainer = document.createElement('div');
             messageContentContainer.classList.add('message');
+            if (isMyMessage) {
+                messageContentContainer.classList.add('my-message');
+            }
 
-            // Add the highlight class if the message is a reply to the current user
             if (message.replyToMessageId && message.replyToSenderId === currentUserId) {
                 messageContentContainer.classList.add('highlight-for-me');
             }
 
-            // If it's a reply, add the reply reference
             if (message.replyToMessageId) {
                 const replyReference = document.createElement('div');
                 replyReference.classList.add('reply-reference');
                 replyReference.innerHTML = `
-                    <i class="fa-solid fa-reply reply-icon"></i>
-                    Replying to: <span class="reply-to-name">${message.replyToSenderName}</span>
+                    <i class="fa-solid fa-reply-icon"></i>
+                    Replying to <span class="reply-to-name">@${message.replyToSenderName}</span>
                 `;
+                replyReference.addEventListener('click', () => {
+                    const originalMessage = document.getElementById(`message-${message.replyToMessageId}`);
+                    if (originalMessage) {
+                        originalMessage.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
+                        originalMessage.style.transition = 'background-color 0.5s';
+                        originalMessage.style.backgroundColor = 'rgba(88, 101, 242, 0.2)';
+                        setTimeout(() => {
+                            originalMessage.style.backgroundColor = '';
+                        }, 1000);
+                    }
+                });
                 messageContentContainer.appendChild(replyReference);
             }
 
             const color = stringToColor(message.senderName);
-            messageContentContainer.innerHTML += `
-                <div class="user-info" style="color: ${color};">${message.senderName}</div>
-                <div class="content">${message.text}</div>
-            `;
-            messageWrapper.appendChild(messageContentContainer);
+            const formattedTime = message.createdAt ? new Date(message.createdAt.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Sending...';
 
-            // Add the reply button with new styling
+            let userInfoHTML = `
+                <div class="user-info" style="color: ${color};">
+                    ${message.senderName} ${isMyMessage ? '<span style="color: var(--text-color-secondary); font-weight: 400;">(You)</span>' : ''}
+                    <span class="timestamp">${formattedTime}</span>
+            `;
+            if (message.editedAt) {
+                userInfoHTML += `<span class="edited-tag">(edited)</span>`;
+            }
+            userInfoHTML += `</div>`;
+
+
+            messageContentContainer.innerHTML += `
+                ${userInfoHTML}
+                <div class="content">${message.text || ''}</div>
+            `;
+
+            if (message.imageUrl) { 
+                const imgElement = document.createElement('img');
+                imgElement.src = message.imageUrl;
+                imgElement.classList.add('message-image');
+                imgElement.alt = "Attached image";
+                messageContentContainer.appendChild(imgElement);
+            }
+
+            if (message.detectedLink) {
+                const linkPreviewAnchor = document.createElement('a');
+                linkPreviewAnchor.href = message.detectedLink;
+                linkPreviewAnchor.target = "_blank";
+                linkPreviewAnchor.rel = "noopener noreferrer";
+                linkPreviewAnchor.classList.add('link-preview-container');
+
+                if (message.linkThumbnail) {
+                    const img = document.createElement('img');
+                    img.src = message.linkThumbnail;
+                    img.classList.add('link-preview-image');
+                    img.alt = "Link preview image";
+                    linkPreviewAnchor.appendChild(img);
+                }
+
+                const infoDiv = document.createElement('div');
+                infoDiv.classList.add('link-preview-info');
+
+                const title = document.createElement('div');
+                title.classList.add('link-preview-title');
+                title.textContent = message.linkTitle || message.detectedLink;
+                infoDiv.appendChild(title);
+
+                if (message.linkDescription) {
+                    const description = document.createElement('div');
+                    description.classList.add('link-preview-description');
+                    description.textContent = message.linkDescription;
+                    infoDiv.appendChild(description);
+                }
+                
+                const urlDisplay = document.createElement('div');
+                urlDisplay.classList.add('link-preview-url');
+                urlDisplay.textContent = new URL(message.detectedLink).hostname;
+                infoDiv.appendChild(urlDisplay);
+
+                linkPreviewAnchor.appendChild(infoDiv);
+                messageContentContainer.appendChild(linkPreviewAnchor);
+            }
+            
             const replyButton = document.createElement('button');
             replyButton.classList.add('reply-btn');
-            replyButton.innerHTML = `Reply <i class="fa-solid fa-reply"></i>`; // Now includes text and icon
+            replyButton.innerHTML = `Reply <i class="fa-solid fa-reply"></i>`; 
             replyButton.setAttribute('title', `Reply to ${message.senderName}`);
-            replyButton.addEventListener('click', () => {
-                replyingTo.messageId = message.id;
-                replyingTo.senderName = message.senderName;
-                replyingTo.replyToSenderId = message.senderId; // Store the ID of the person being replied to
-                replyToNameSpan.textContent = message.senderName;
-                replyStatus.style.display = 'flex';
-                messageInput.placeholder = `Replying to @${message.senderName}...`;
-                messageInput.focus();
+            replyButton.addEventListener('click', (e) => {
+                e.stopPropagation(); 
+                setReplyState(message.id, message.senderName, message.senderId);
             });
-            messageWrapper.appendChild(replyButton);
+            messageContentContainer.appendChild(replyButton);
 
+            if (isMyMessage) {
+                const editButton = document.createElement('button');
+                editButton.classList.add('edit-btn');
+                editButton.innerHTML = `Edit <i class="fa-solid fa-pen-to-square"></i>`; 
+                editButton.setAttribute('title', `Edit your message`);
+                editButton.addEventListener('click', (e) => {
+                    e.stopPropagation(); 
+                    setEditState(message.id, message.text);
+                });
+                messageContentContainer.appendChild(editButton);
+            }
 
-            chatWindow.appendChild(messageWrapper);
+            messageWrapper.appendChild(messageContentContainer);
+            
+            return messageWrapper;
+        }
+
+        function displayMessage(message) {
+            const messageElement = createMessageElement(message);
+            chatWindow.appendChild(messageElement);
         }
         
-        // --- Emoji Picker Logic ---
+        loadMoreMessagesBtn.addEventListener('click', () => {
+            if (hasMoreMessages && lastVisibleMessage) {
+                listenForMessages(currentChannel, false); 
+            } else {
+                loadMoreMessagesBtn.style.display = 'none'; 
+            }
+        });
+
         emojiPickerBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevents the document click listener from firing immediately
+            e.stopPropagation(); 
             emojiPicker.style.display = emojiPicker.style.display === 'flex' ? 'none' : 'flex';
-            emojiSearchInput.focus(); // Focus the search bar when the picker opens
+            emojiSearchInput.focus(); 
         });
         
-        // Populate the emoji picker with buttons
         function createEmojiButtons(filteredEmojis) {
             emojiGrid.innerHTML = '';
             filteredEmojis.forEach(emojiObj => {
@@ -1250,32 +1866,194 @@
                 emojiButton.addEventListener('click', () => {
                     messageInput.value += emojiObj.emoji;
                     messageInput.focus();
-                    emojiPicker.style.display = 'none'; // Close picker after selection
+                    emojiPicker.style.display = 'none'; 
+                    setTypingStatus(messageInput.value.trim().length > 0); 
                 });
                 emojiGrid.appendChild(emojiButton);
             });
         }
 
-        // Add event listener for the emoji search bar
         emojiSearchInput.addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase();
             const filteredEmojis = emojis.filter(emojiObj => {
-                // Check if any keyword includes the search term
                 return emojiObj.keywords.some(keyword => keyword.includes(searchTerm));
             });
             createEmojiButtons(filteredEmojis);
         });
         
-        // Close the emoji picker if a click occurs outside of it
         document.addEventListener('click', (e) => {
             if (!emojiPicker.contains(e.target) && e.target !== emojiPickerBtn) {
                 emojiPicker.style.display = 'none';
             }
         });
 
-        // Initial call to create emoji buttons with the full list
         createEmojiButtons(emojis);
+
+
+        attachImageBtn.addEventListener('click', () => {
+            imageInput.click(); 
+        });
+
+        imageInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                alert("Please select an image file.");
+                imageInput.value = ''; 
+                return;
+            }
+
+            try {
+                const optimizedBlob = await resizeAndCompressImage(file, 800, 0.7); 
+                attachedImageFile = optimizedBlob;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    imagePreviewContainer.style.display = 'flex'; 
+                };
+                reader.readAsDataURL(optimizedBlob);
+
+                messageInput.placeholder = "Add a caption or send image only...";
+                messageInput.focus();
+
+            } catch (error) {
+                console.error("Error processing image from file input:", error);
+                alert("Failed to process image. Please try a different one.");
+                resetFormState();
+            }
+        });
+
+        messageInput.addEventListener('paste', async (event) => {
+            event.preventDefault(); 
+            const clipboardData = event.clipboardData;
+
+            if (!clipboardData) {
+                 const pastedText = event.clipboardData.getData('text/plain');
+                 document.execCommand('insertText', false, pastedText);
+                 return;
+            }
+
+            const items = clipboardData.items;
+            if (!items) {
+                 const pastedText = event.clipboardData.getData('text/plain');
+                 document.execCommand('insertText', false, pastedText);
+                 return;
+            }
+
+            let imageFound = false;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.startsWith('image/')) {
+                    imageFound = true;
+                    const file = items[i].getAsFile();
+                    if (!file) continue;
+
+                    try {
+                        const optimizedBlob = await resizeAndCompressImage(file, 800, 0.7); 
+                        attachedImageFile = optimizedBlob;
+
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            imagePreview.src = e.target.result;
+                            imagePreviewContainer.style.display = 'flex'; 
+                        };
+                        reader.readAsDataURL(optimizedBlob);
+
+                        messageInput.placeholder = "Add a caption or send image only...";
+                        messageInput.focus();
+                        return; 
+
+                    } catch (error) {
+                        console.error("Error processing pasted image:", error);
+                        alert("Failed to process pasted image. Please try a different one.");
+                        resetFormState();
+                        return;
+                    }
+                }
+            }
+            
+            if (!imageFound) {
+                const pastedText = clipboardData.getData('text/plain');
+                document.execCommand('insertText', false, pastedText);
+            }
+        });
+
+
+        function resizeAndCompressImage(file, maxWidth, quality) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (readerEvent) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height *= maxWidth / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxWidth) {
+                                width *= maxWidth / height;
+                                height = maxWidth;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                resolve(blob);
+                            } else {
+                                reject(new Error('Canvas toBlob failed.'));
+                            }
+                        }, 'image/jpeg', quality); 
+                    };
+                    img.onerror = (error) => reject(error);
+                    img.src = readerEvent.target.result;
+                };
+                reader.onerror = (error) => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function uploadImageToCloudinary(imageBlob) {
+            if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
+                alert("Cloudinary configuration missing. Please set CLOUDINARY_CLOUD_NAME and CLOUDINARY_UPLOAD_PRESET.");
+                console.error("Cloudinary configuration missing.");
+                return null;
+            }
+
+            const formData = new FormData();
+            formData.append('file', imageBlob);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+            try {
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Cloudinary upload failed: ${errorData.error.message}`);
+                }
+
+                const data = await response.json();
+                console.log("Image uploaded to Cloudinary:", data.secure_url);
+                return data.secure_url; 
+            } catch (error) {
+                console.error("Error uploading to Cloudinary:", error);
+                return null;
+            }
+        }
+
     </script>
 </body>
 </html>
-�
